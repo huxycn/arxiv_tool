@@ -58,20 +58,24 @@ def download_from_md_and_update(md_file_or_dir, output_pdf_dir='./pdfs'):
     pdf_downloader = PdfDownloader()
 
     md_files = get_md_files(md_file_or_dir)
-    md_files_msg = "\n".join([str(md_file) for md_file in md_files])
-    logger.info(f'md-loop ==> {len(md_files)} md files found: \n{md_files_msg}')
+    logger.info('# ' + '='*50)
+    logger.info('# ' + f'Start to process {md_file_or_dir}')
+    logger.info('# ' + f'Find {len(md_files)} markdown files:')
     for md_idx, md_file in enumerate(md_files):
-        logger.info(f'md-loop ==> {md_idx}: {md_file}')
+        logger.info('# ' + f'    {md_idx+1}. {md_file}')
+    logger.info('# ' + '='*50)
+    logger.info('')
+
+    for md_idx, md_file in enumerate(md_files):
         with open(md_file, 'r') as f:
             content = f.read()
 
         replace_dict = {}
         arxiv_urls = pattern_recognizer.findall(content)
-        arxiv_urls_msg = "\n".join([str(arxiv_url) for arxiv_url in arxiv_urls])
-        logger.info(f'url-loop ==> {len(arxiv_urls)} arxiv urls found: \n{arxiv_urls_msg}')
+        logger.info(f'==> [{md_idx+1}/{len(md_files)}] processing markdown file: {md_file} ({len(arxiv_urls)} urls) ...')
         for url_idx, arxiv_url in enumerate(arxiv_urls):
             try:
-                logger.info(f'url-loop ==> {url_idx}: {arxiv_url}')
+                logger.info(f'    --> ({url_idx+1}/{len(arxiv_urls)}) processing arxiv url: {arxiv_url} ...')
                 paper_alias = arxiv_url[0].strip().replace(':', '')
                 arxiv_url_with_braces = arxiv_url[1]
                 arxiv_url = arxiv_url_with_braces[2:-2]
@@ -83,14 +87,14 @@ def download_from_md_and_update(md_file_or_dir, output_pdf_dir='./pdfs'):
 
                 pdf_downloader.download(pdf_link, pdf_path)
 
-                replace_dict[arxiv_url_with_braces] = f'{arxiv_url}: {get_paper_info(arxiv_info)}'
+                replace_dict[arxiv_url_with_braces] = f'{arxiv_url}: {get_paper_info(arxiv_info)} [pdf]({pdf_path})'
             except Exception as e:
-                logger.warning(f'url-loop ==> {url_idx}: {arxiv_url} failed: {e}')
+                logger.warning(f'{arxiv_url} failed: {e}')
         
         replaced_content = pattern_recognizer_replace.multiple_replace(content, **replace_dict)
         with open(md_file, 'w') as f:
             f.write(replaced_content)
-        logger.info(f'md-loop ==> {md_idx}: {md_file} updated')
+        logger.info(f'==> [{md_idx+1}/{len(md_files)}] markdown file {md_file} updated!')
 
 
 def main():

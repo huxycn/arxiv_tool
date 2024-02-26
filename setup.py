@@ -9,6 +9,7 @@ setup(
     install_requires=[
         'fire',
         'loguru',
+        'tqdm',
         'requests',
         'feedparser',
         'tabulate',

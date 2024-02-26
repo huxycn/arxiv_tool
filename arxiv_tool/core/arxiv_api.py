@@ -45,14 +45,14 @@ class ArxivApi:
 
         info_msg = f'{", ".join([f"{key}: {value}" for key, value in info_dict.items()])}'
 
-        logger.info(f'extract arxiv info: {info_msg}')
+        logger.debug(f'extract arxiv info: {info_msg}')
         return info_dict
 
     @retry(stop=stop_after_attempt(3))
     def fetch_arxiv_info(self, _id, handler=False):
         params = "?search_query=id:"+quote(unidecode(_id))
 
-        logger.info(f'fetching arxiv info with id: {_id} ...')
+        logger.debug(f'fetching arxiv info with id: {_id} ...')
         try:
             if handler:
                 result = feedparser.parse(self.base_url + params, handlers=[handler], request_headers=HEADERS)

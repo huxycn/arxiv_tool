@@ -1,6 +1,8 @@
 import requests
 
 from loguru import logger
+from pathlib import Path
+from tqdm import tqdm
 from tenacity import retry, stop_after_attempt
 
 
@@ -9,8 +11,8 @@ HEADERS = {'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64; rv:27.0) Gecko/2010010
 
 class PdfDownloader:
     def __init__(self):
-        self.sess = requests.Session()
-        self.sess.headers = HEADERS
+        self.session = requests.Session()
+        self.session.headers = HEADERS
 
     def set_proxy(self, proxy=None):
         if proxy:
@@ -18,20 +20,24 @@ class PdfDownloader:
 
     @retry(stop=stop_after_attempt(3))
     def download(self, url, path, auth=None):
+        if Path(path).exists():
+            logger.warning(f'PDF {path} already exists, skip downloading!')
+            return True
         try:
-            logger.info(f'fetching pdf conent with link: {url} ...')
-            r = self.sess.get(url, auth=auth)
+            logger.info(f'Downloading {url} to {path}')
+            response = self.session.get(url, auth=auth, stream="TRUE")
 
-            if r.headers["Content-Type"] != "application/pdf":
-                logger.warning('Failed to fetch pdf with url: {url}, retry ...')
+            if response.headers["Content-Type"] != "application/pdf":
+                logger.warning(f'Failed to fetch pdf with url: {url}, retry ...')
                 raise Exception("Failed to fetch pdf with url: {url}")
             else:
-                with open(path, "wb") as f:
-                    f.write(r.content)
-                logger.info(f"download {url} as {path}")
+                total = int(response.headers.get('content-length'))
+                with open(path, 'wb') as file:
+                    for data in tqdm(response.iter_content(), total=total, unit='B', unit_scale=True, unit_divisor=1024):
+                        file.write(data)
                 return True
         except:
-            logger.warning('Failed to open url: {url}, retry ...')
+            logger.warning(f'Failed to open url: {url}, retry ...')
             raise Exception("Failed to open url: {url}")
 
 
