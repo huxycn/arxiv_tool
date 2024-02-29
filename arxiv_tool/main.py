@@ -87,7 +87,7 @@ def download_from_md_and_update(md_file_or_dir, output_pdf_dir='./pdfs'):
 
                 pdf_downloader.download(pdf_link, pdf_path)
 
-                replace_dict[arxiv_url_with_braces] = f'{arxiv_url}: {get_paper_info(arxiv_info)} [pdf]({pdf_path})'
+                replace_dict[arxiv_url_with_braces] = f'{get_paper_info(arxiv_info)} [arxiv]({arxiv_url}) [pdf]({pdf_path})'
             except Exception as e:
                 logger.warning(f'{arxiv_url} failed: {e}')
         
